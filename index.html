@@ -17,47 +17,32 @@
         h1 {
             font-weight: 700;
         }
-        #game-board {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 20px auto;
-        }
-        .row {
-            display: flex;
-            margin: 5px 0;
-        }
-        .cell {
-            width: 50px;
-            height: 50px;
-            margin: 2px;
-            border: 2px solid #FFFFFF;
-            color: #FFFFFF;
-            background-color: #000000;
-            text-align: center;
-            font-size: 24px;
-            line-height: 50px;
-        }
-        .keyboard {
-            display: flex;
-            flex-wrap: wrap;
+        #word-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 50px);
+            grid-gap: 5px;
             justify-content: center;
             margin: 20px auto;
         }
-        .key {
-            margin: 5px;
-            padding: 10px;
-            width: 40px;
-            height: 40px;
+        .letter-box {
+            width: 50px;
+            height: 50px;
             border: 2px solid #FFFFFF;
             background-color: #000000;
             color: #FFFFFF;
-            font-size: 18px;
-            cursor: pointer;
+            font-size: 24px;
+            text-transform: uppercase;
+            text-align: center;
+            line-height: 50px;
         }
-        .key:hover {
-            background-color: #1E90FF;
-            border-color: #104E8B;
+        .correct {
+            background-color: #00FF00; /* Verde */
+        }
+        .present {
+            background-color: #FFFF00; /* Amarelo */
+        }
+        .absent {
+            background-color: #808080; /* Cinza */
         }
         #feedback {
             margin-top: 20px;
@@ -74,9 +59,6 @@
         #restart-btn:hover {
             background-color: #104E8B;
         }
-        .hidden {
-            display: none;
-        }
         img {
             max-width: 200px;
             margin-top: 20px;
@@ -85,10 +67,9 @@
 </head>
 <body>
     <h1>Palavras do Guguinho</h1>
-    <div id="game-board"></div>
-    <div class="keyboard"></div>
+    <div id="word-grid"></div>
     <div id="feedback"></div>
-    <button id="restart-btn" class="hidden">Jogar Novamente</button>
+    <button id="restart-btn" style="display: none;">Jogar Novamente</button>
     <script>
         const words = [
             "CASA", "GATO", "PEIXE", "FLOR", "NUVEM", "SOL", "LUA", "BOLA", "RATO", "RIO",
@@ -100,67 +81,86 @@
         ];
         const maxAttempts = 6;
         let currentWord = words[Math.floor(Math.random() * words.length)];
-        let attempts = 0;
-
-        const gameBoard = document.getElementById("game-board");
-        const keyboard = document.querySelector(".keyboard");
+        let attempts = [];
+        let currentAttempt = "";
+        const wordGrid = document.getElementById("word-grid");
         const feedback = document.getElementById("feedback");
         const restartBtn = document.getElementById("restart-btn");
 
-        function createBoard(wordLength) {
-            for (let i = 0; i < maxAttempts; i++) {
-                const row = document.createElement("div");
-                row.classList.add("row");
-                for (let j = 0; j < wordLength; j++) {
-                    const cell = document.createElement("div");
-                    cell.classList.add("cell");
-                    row.appendChild(cell);
-                }
-                gameBoard.appendChild(row);
+        function initializeGrid() {
+            wordGrid.innerHTML = "";
+            for (let i = 0; i < maxAttempts * currentWord.length; i++) {
+                const box = document.createElement("div");
+                box.classList.add("letter-box");
+                wordGrid.appendChild(box);
             }
         }
 
-        function createKeyboard() {
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-            letters.forEach(letter => {
-                const key = document.createElement("div");
-                key.classList.add("key");
-                key.textContent = letter;
-                key.addEventListener("click", () => handleKeyPress(letter));
-                keyboard.appendChild(key);
+        function updateGrid() {
+            const boxes = document.querySelectorAll(".letter-box");
+            attempts.forEach((attempt, rowIndex) => {
+                for (let i = 0; i < attempt.length; i++) {
+                    const boxIndex = rowIndex * currentWord.length + i;
+                    boxes[boxIndex].textContent = attempt[i];
+                    if (currentWord[i] === attempt[i]) {
+                        boxes[boxIndex].classList.add("correct");
+                    } else if (currentWord.includes(attempt[i])) {
+                        boxes[boxIndex].classList.add("present");
+                    } else {
+                        boxes[boxIndex].classList.add("absent");
+                    }
+                }
             });
         }
 
-        function handleKeyPress(letter) {
-            console.log(letter);
-            // Implementar lógica para interações com o teclado
+        function checkGameStatus() {
+            if (attempts[attempts.length - 1] === currentWord) {
+                feedback.innerHTML = `<p>Parabéns, você venceu!</p><img src="https://i.ibb.co/mmyBb56/IMG-1386.jpg" alt="Vitória">`;
+                restartBtn.style.display = "block";
+            } else if (attempts.length === maxAttempts) {
+                feedback.innerHTML = `<p>Você perdeu! A palavra era: ${currentWord}</p><img src="https://i.ibb.co/7tvpr1Y/IMG-1387.jpg" alt="Derrota">`;
+                restartBtn.style.display = "block";
+            }
         }
 
-        function checkWord() {
-            // Implementar lógica para verificar as palavras digitadas
-            // Exibir feedback e gerenciar tentativas
+        function handleKeyPress(event) {
+            const key = event.key.toUpperCase();
+            if (/^[A-Z]$/.test(key) && currentAttempt.length < currentWord.length) {
+                currentAttempt += key;
+                updateCurrentAttempt();
+            } else if (key === "BACKSPACE" && currentAttempt.length > 0) {
+                currentAttempt = currentAttempt.slice(0, -1);
+                updateCurrentAttempt();
+            } else if (key === "ENTER" && currentAttempt.length === currentWord.length) {
+                attempts.push(currentAttempt);
+                currentAttempt = "";
+                updateGrid();
+                checkGameStatus();
+            }
         }
 
-        function showFeedback(message, imgUrl) {
-            feedback.innerHTML = `<p>${message}</p><img src="${imgUrl}" alt="Feedback">`;
-            restartBtn.classList.remove("hidden");
+        function updateCurrentAttempt() {
+            const boxes = document.querySelectorAll(".letter-box");
+            const rowIndex = attempts.length;
+            for (let i = 0; i < currentWord.length; i++) {
+                const boxIndex = rowIndex * currentWord.length + i;
+                boxes[boxIndex].textContent = currentAttempt[i] || "";
+            }
         }
 
         function restartGame() {
-            gameBoard.innerHTML = "";
-            keyboard.innerHTML = "";
-            feedback.innerHTML = "";
-            restartBtn.classList.add("hidden");
-            attempts = 0;
             currentWord = words[Math.floor(Math.random() * words.length)];
-            createBoard(currentWord.length);
-            createKeyboard();
+            attempts = [];
+            currentAttempt = "";
+            initializeGrid();
+            feedback.innerHTML = "";
+            restartBtn.style.display = "none";
         }
 
+        document.addEventListener("keydown", handleKeyPress);
         restartBtn.addEventListener("click", restartGame);
 
-        createBoard(currentWord.length);
-        createKeyboard();
+        initializeGrid();
     </script>
 </body>
 </html>

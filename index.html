@@ -1,358 +1,137 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Palavras do Guguinho</title>
+    <title>Jogo de Adivinhar Palavras</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
         body {
             background-color: #000000;
+            font-family: 'Poppins', sans-serif;
             color: #FFFFFF;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
             padding: 20px;
-        }
-
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 20px;
+            margin: 0;
             text-align: center;
         }
-
-        #game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        #grid {
-            display: grid;
-            gap: 5px;
-            margin-bottom: 20px;
-        }
-
-        .row {
-            display: flex;
-            gap: 5px;
-        }
-
-        .cell {
-            width: 50px;
-            height: 50px;
-            background-color: #000000;
-            border: 2px solid #FFFFFF;
-            color: #FFFFFF;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        h1 {
             font-size: 1.5rem;
-            text-transform: uppercase;
-        }
-
-        .cell.correct {
-            background-color: #00FF00;
-            color: #000000;
-        }
-
-        .cell.wrong-position {
-            background-color: #FFFF00;
-            color: #000000;
-        }
-
-        .cell.incorrect {
-            background-color: #808080;
-            color: #FFFFFF;
-        }
-
-        #keyboard {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            width: 100%;
-            max-width: 400px;
             margin-bottom: 20px;
         }
-
-        .keyboard-row {
-            display: flex;
-            gap: 5px;
-            justify-content: center;
+        #hidden-word {
+            font-size: 2rem;
+            color: #FFD700;
+            margin-bottom: 20px;
+            letter-spacing: 5px;
         }
-
-        .key {
-            background-color: #000000;
-            border: 2px solid #FFFFFF;
-            color: #FFFFFF;
+        #guess-input {
             padding: 10px;
             font-size: 1rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            flex: 1;
-            text-align: center;
-            max-width: 40px;
+            font-family: 'Poppins', sans-serif;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 80%;
+            max-width: 200px;
         }
-
-        .key.wide {
-            max-width: 60px;
-        }
-
-        .key.correct {
-            background-color: #00FF00;
-            color: #000000;
-        }
-
-        .key.wrong-position {
-            background-color: #FFFF00;
-            color: #000000;
-        }
-
-        .key.incorrect {
-            background-color: #808080;
-            color: #FFFFFF;
-        }
-
-        #confirm-btn, #play-again-btn {
-            background-color: #1E90FF;
+        #confirm-btn, #next-btn {
+            background-color: #FF69B4;
             color: #FFFFFF;
             border: none;
             padding: 10px 20px;
             font-size: 1rem;
-            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
             border-radius: 5px;
-            margin-top: 10px;
+            cursor: pointer;
+            margin: 5px;
         }
-
-        #confirm-btn:hover, #play-again-btn:hover {
-            background-color: #104E8B;
-        }
-
-        #message {
-            font-size: 1.2rem;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        #dog-image {
-            max-width: 200px;
-            margin: 20px 0;
+        #feedback {
+            margin-top: 20px;
             display: none;
         }
-
+        #feedback img {
+            width: 150px;
+            height: auto;
+            border-radius: 10px;
+        }
         @media (max-width: 600px) {
             h1 {
-                font-size: 1.5rem;
-            }
-
-            .cell {
-                width: 40px;
-                height: 40px;
                 font-size: 1.2rem;
             }
-
-            .key {
-                padding: 8px;
+            #hidden-word {
+                font-size: 1.5rem;
+                letter-spacing: 3px;
+            }
+            #guess-input {
                 font-size: 0.9rem;
-                max-width: 30px;
+                padding: 8px;
             }
-
-            .key.wide {
-                max-width: 50px;
-            }
-
-            #dog-image {
-                max-width: 150px;
+            #confirm-btn, #next-btn {
+                font-size: 0.9rem;
+                padding: 8px 16px;
             }
         }
     </style>
 </head>
 <body>
-    <h1>Palavras do Guguinho</h1>
-    <div id="game-container">
-        <div id="grid"></div>
-        <div id="keyboard"></div>
-        <button id="confirm-btn">Confirmar</button>
-        <div id="message"></div>
-        <img id="dog-image" src="" alt="Guguinho">
-        <button id="play-again-btn" style="display: none;">Jogar Novamente</button>
-    </div>
+    <h1>Adivinhe a Palavra!</h1>
+    <div id="hidden-word"></div>
+    <input type="text" id="guess-input" placeholder="Digite a palavra" autocomplete="off">
+    <button id="confirm-btn">Confirmar</button>
+    <button id="next-btn" style="display: none;">Próxima Palavra</button>
+    <div id="feedback"></div>
 
     <script>
         const words = [
-            "CASA", "GATO", "PEIXE", "FLOR", "NUVEM", "SOL", "LUA", "BOLA", "RATO", "RIO",
-            "MESA", "PATO", "FOGO", "VENTO", "LEITE", "SAPO", "TREM", "CEU", "PORTA", "LIVRO",
-            "ARVORE", "CHAVE", "PONTE", "NINHO", "FESTA", "BRISA", "CAMPO", "ROCHA", "LAGO", "ESTRELA",
-            "BANCO", "SINO", "CARRO", "JOGO", "MAR", "CAFE", "PAO", "SOPA", "DENTE", "FIO",
-            "CHUVA", "NEVE", "SOLAR", "LAPIS", "CANETA", "BOTA", "SACO", "VIDRO", "MEL", "SAL"
+            "CASA", "GATO", "SOL", "LUA", "BOLA",
+            "PEIXE", "FLOR", "RIO", "MESA", "TREM"
         ];
+        let currentWordIndex = 0;
+        let currentWord = words[currentWordIndex];
 
-        const winImage = "https://i.ibb.co/mmyBb56/IMG-1386.jpg";
-        const loseImage = "https://i.ibb.co/7tvpr1Y/IMG-1387.jpg";
-        const maxAttempts = 6;
-        let currentWord = "";
-        let currentRow = 0;
-        let currentCol = 0;
-        let gameOver = false;
-        let guess = [];
-
-        const grid = document.getElementById("grid");
-        const keyboard = document.getElementById("keyboard");
-        const confirmBtn = document.getElementById("confirm-btn");
-        const message = document.getElementById("message");
-        const dogImage = document.getElementById("dog-image");
-        const playAgainBtn = document.getElementById("play-again-btn");
-
-        function startGame() {
-            currentWord = words[Math.floor(Math.random() * words.length)];
-            currentRow = 0;
-            currentCol = 0;
-            gameOver = false;
-            guess = [];
-            message.textContent = "";
-            dogImage.style.display = "none";
-            playAgainBtn.style.display = "none";
-            confirmBtn.style.display = "block";
-            grid.innerHTML = "";
-            keyboard.innerHTML = "";
-            createGrid();
-            createKeyboard();
-        }
-
-        function createGrid() {
-            for (let i = 0; i < maxAttempts; i++) {
-                const row = document.createElement("div");
-                row.className = "row";
-                for (let j = 0; j < currentWord.length; j++) {
-                    const cell = document.createElement("div");
-                    cell.className = "cell";
-                    row.appendChild(cell);
-                }
-                grid.appendChild(row);
+        function showHiddenWord(word) {
+            let hidden = '';
+            const visibleIndices = [];
+            while (visibleIndices.length < 2) {
+                const index = Math.floor(Math.random() * word.length);
+                if (!visibleIndices.includes(index)) visibleIndices.push(index);
             }
-        }
-
-        function createKeyboard() {
-            const keys = [
- sanctity of the keyboard layout in Portuguese, including only the letters A-Z and a backspace key:
-
-```javascript
-                ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-                ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-                ["Z", "X", "C", "V", "B", "N", "M", "⌫"]
-            ];
-            keys.forEach(rowKeys => {
-                const row = document.createElement("div");
-                row.className = "keyboard-row";
-                rowKeys.forEach(key => {
-                    const btn = document.createElement("div");
-                    btn.className = `key ${key === "⌫" ? "wide" : ""}`;
-                    btn.textContent = key;
-                    btn.addEventListener("click", () => handleKey(key));
-                    row.appendChild(btn);
-                });
-                keyboard.appendChild(row);
-            });
-        }
-
-        function handleKey(key) {
-            if (gameOver) return;
-            if (key === "⌫") {
-                if (currentCol > 0) {
-                    currentCol--;
-                    guess.pop();
-                    const row = grid.children[currentRow];
-                    row.children[currentCol].textContent = "";
-                }
-            } else if (key.match(/[A-Z]/) && currentCol < currentWord.length) {
-                guess.push(key);
-                const row = grid.children[currentRow];
-                row.children[currentCol].textContent = key;
-                currentCol++;
+            for (let i = 0; i < word.length; i++) {
+                hidden += visibleIndices.includes(i) ? word[i] : '_';
             }
+            document.getElementById('hidden-word').textContent = hidden;
         }
 
         function checkGuess() {
-            if (currentCol !== currentWord.length) {
-                message.textContent = "Complete a palavra!";
-                return;
-            }
+            const guess = document.getElementById('guess-input').value.toUpperCase();
+            const feedbackElement = document.getElementById('feedback');
+            const nextBtn = document.getElementById('next-btn');
 
-            const guessStr = guess.join("");
-            const row = grid.children[currentRow];
-            let correctCount = 0;
-            const letterCounts = {};
-
-            // Count letters in target word
-            for (let char of currentWord) {
-                letterCounts[char] = (letterCounts[char] || 0) + 1;
-            }
-
-            // First pass: Mark correct letters (green)
-            for (let i = 0; i < currentWord.length; i++) {
-                const cell = row.children[i];
-                const key = document.querySelector(`.key:not(.wide)[textContent="${guess[i]}"]`);
-                if (guess[i] === currentWord[i]) {
-                    cell.classList.add("correct");
-                    if (key) key.classList.add("correct");
-                    letterCounts[guess[i]]--;
-                    correctCount++;
-                }
-            }
-
-            // Second pass: Mark wrong position (yellow) and incorrect (gray)
-            for (let i = 0; i < currentWord.length; i++) {
-                const cell = row.children[i];
-                const key = document.querySelector(`.key:not(.wide)[textContent="${guess[i]}"]`);
-                if (!cell.classList.contains("correct")) {
-                    if (currentWord.includes(guess[i]) && letterCounts[guess[i]] > 0) {
-                        cell.classList.add("wrong-position");
-                        if (key && !key.classList.contains("correct")) key.classList.add("wrong-position");
-                        letterCounts[guess[i]]--;
-                    } else {
-                        cell.classList.add("incorrect");
-                        if (key && !key.classList.contains("correct") && !key.classList.contains("wrong-position")) {
-                            key.classList.add("incorrect");
-                        }
-                    }
-                }
-            }
-
-            if (correctCount === currentWord.length) {
-                message.textContent = "Parabéns, você venceu!";
-                dogImage.src = winImage;
-                dogImage.style.display = "block";
-                gameOver = true;
-                confirmBtn.style.display = "none";
-                playAgainBtn.style.display = "block";
-            } else if (currentRow === maxAttempts - 1) {
-                message.textContent = `Você perdeu! A palavra era: ${currentWord}`;
-                dogImage.src = loseImage;
-                dogImage.style.display = "block";
-                gameOver = true;
-                confirmBtn.style.display = "none";
-                playAgainBtn.style.display = "block";
+            if (guess === currentWord) {
+                feedbackElement.innerHTML = '<img src="https://i.ibb.co/mmyBb56/IMG-1386.jpg" alt="Certo">';
+                nextBtn.style.display = 'inline-block';
             } else {
-                currentRow++;
-                currentCol = 0;
-                guess = [];
+                feedbackElement.innerHTML = '<img src="https://i.ibb.co/7tvprR1Y/IMG-1387.jpg" alt="Errado">';
             }
+            feedbackElement.style.display = 'block';
         }
 
-        confirmBtn.addEventListener("click", checkGuess);
-        playAgainBtn.addEventListener("click", startGame);
+        function nextWord() {
+            currentWordIndex = (currentWordIndex + 1) % words.length;
+            currentWord = words[currentWordIndex];
+            document.getElementById('guess-input').value = '';
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            showHiddenWord(currentWord);
+        }
 
-        startGame();
+        // Inicializa o jogo
+        showHiddenWord(currentWord);
+        document.getElementById('confirm-btn').addEventListener('click', checkGuess);
+        document.getElementById('next-btn').addEventListener('click', nextWord);
     </script>
 </body>
 </html>
